@@ -26,13 +26,12 @@ app.get('/uid', (req, res) => {
     uid = nanoid(8)
   }
   client_callback[uid] = req.query.callback
-  console.log(client_callback[uid])
+  console.log(uid + ': ' + client_callback[uid])
   // Generate the challenge to verify the certificate
   var challenge = nanoid(128)  // can change this to crypto-safe random string generator
   client_challange[uid] = challenge
   var certRaw = req.headers['authorization']
   var cert = forge.pki.certificateFromPem(certRaw)
-  console.log(cert)
   client_certificate[uid] = certRaw
   var public_key = cert.publicKey
   res.type('json')
