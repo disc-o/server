@@ -4,6 +4,7 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const nanoid = require('nanoid')
 const forge = require('node-forge')
+const uuid = require('uuid')
 
 const port = 3001
 
@@ -51,11 +52,35 @@ app.post('/uid', (req, res) => {
       method: 'POST',
       json: true,
       body: {
-        'proxy_url': req.body.proxy_url
+        'proxy_url': req.body.proxy_url,
+        'public_key': req.body.public_key
       }
     }
     request(options, (err, resq, body) => { })
-    res.send({ challenge: client_challange[uid] });
+    var certRaw = client_certificate[uid]
+    var pubKey = forge.pki.certificateFromPem(certRaw).publicKey
+    var pubKeyPem = forge.pki.publicKeyToPem(pubKey)
+    res.send({ challenge: client_challange[uid], certificate: certRaw, public_key: pubKeyPem })
   }
 })
 
+app.post('/cert', (req, res) => {
+  var certPem = req.body.pem;
+  console.log(certPem);
+  var cert = forge.pki.certificateFromPem(certPem);
+  var pub = forge.pki.publicKeyToPem(cert.publicKey);
+
+  res.send(
+    {
+      public_key: pub,
+      extensions: cert.extensions,
+      issuer: cert.issuer,
+      md: cert.md,
+      serialNumber: cert.serialNumber,
+      siginfo: cert.siginfo,
+      signature: cert.signature,
+      subject: cert.subject,
+      validity: cert.validity,
+      version: cert.version
+    });
+});
